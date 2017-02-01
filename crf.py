@@ -69,8 +69,6 @@ class CRF(object):
             a list of transition matrices
         """
         transition_matrices = []
-        transition_matrix = np.zeros((self.num_labels, self.num_labels))
-        transition_matrices.append(transition_matrix)
         # dummy matrix at 0
         transition_matrix = np.zeros((self.num_labels, self.num_labels))
         transition_matrices.append(transition_matrix)
@@ -140,8 +138,11 @@ class CRF(object):
         alphas = self.forward(sequence, transition_matrices)
         betas = self.backward(sequence, transition_matrices)
         decoded_sequence = []
+        normalized_score_of_label=np.zeros((self.num_labels, len(sequence)))
         for t in xrange(len(sequence)):
-            decoded_sequence.append(max([i for i in xrange(self.num_labels)], key=(alpha[i][t]*beta[i][t]/sum([alpha[k][t]*beta[k][t] for k in xrange(self.num_labels)]))))
+            for i in xrange(self.num_labels):
+                normalized_score_of_label[i][t]=alphas[i][t]*betas[i][t]/sum([alphas[j][t]*betas[j][t] for j in xrange(self.num_labels)])
+            decoded_sequence.append(np.argmax(normalized_score_of_label[:,t]))
         return decoded_sequence
 
     def compute_observed_count(self, sequences):
